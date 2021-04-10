@@ -5,12 +5,20 @@
 #include <pwd.h>
 #include <qt5/QtCore/QStringList>
 #include <QObject>
+#include <iostream>
+#define NUMBER_COLS 6
+#define NUMBER_FILTERS 3
 class QProcessWindow: public QMainWindow
 {
     Q_OBJECT
     public:
         QProcessWindow(QWidget *parent = 0);
-        virtual ~QProcessWindow(){};
+        virtual ~QProcessWindow(){
+            delete proc;
+            delete info;
+            delete table;
+            delete [] lineEdit_filters;
+        };
     private:
         PROCTAB* proc;
         proc_t* info;

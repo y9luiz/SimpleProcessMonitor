@@ -9,8 +9,6 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <QtWidgets/QLineEdit>
-#define NUMBER_COLS 6
-#define NUMBER_FILTERS 3
 QProcessWindow::QProcessWindow(QWidget *parent)
 {
     table = new QTableWidget();
@@ -75,8 +73,8 @@ std::vector<QStringList> QProcessWindow::getProcInformations()
     }
     std::vector<QStringList> data;
     meminfo();
-    double up_time;
-    uptime(&up_time,NULL);
+    double up_time,idle_sec;
+    uptime(&up_time,&idle_sec);
     QString pid_filter = this->lineEdit_filters[0]->text();
     QString user_filter = this->lineEdit_filters[1]->text();
     QString command_filter = this->lineEdit_filters[2]->text();
@@ -88,12 +86,12 @@ std::vector<QStringList> QProcessWindow::getProcInformations()
         QString state;
         state.append(info->state);
         QStringList process_info;
-        long int total = kb_main_total;
-        double mem_perc = info->vm_rss*100.0/total;
+        long int total_main_mem = kb_main_total;
+        double mem_perc = info->vm_rss*100.0/total_main_mem;
         unsigned long long total_time = info->utime + info->stime;
         total_time+=info->cutime+info->cstime;
-        double seconds = up_time - (info->start_time/double(Hertz));
-        double cpu_usage = 100* ((total_time/double(Hertz))/seconds);
+        double seconds = up_time - (info->start_time/Hertz);
+        double cpu_usage = 100* ((total_time/Hertz)/seconds);
         bool display_pid = QString::compare(task_id, pid_filter)==0;
         bool display_username = QString::compare(username, user_filter)==0;
         bool display_command = QString::compare(command, command_filter)==0;
@@ -113,7 +111,6 @@ std::vector<QStringList> QProcessWindow::getProcInformations()
 void QProcessWindow::paintEvent(QPaintEvent * e){
     auto process_info = getProcInformations();
     int item_width = table->width()/NUMBER_COLS;
-    std::cout<<item_width;
     for(int i =0;i<NUMBER_COLS;i++)
     {
             table->setColumnWidth(i,item_width);
